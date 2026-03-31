@@ -16,7 +16,7 @@ import { useConnect, useConnectors, useConnection, useDisconnect } from 'wagmi'
  * - Seamless integration with Tempo zero-gas transactions
  * 
  * Note: Currently uses localStorage for key persistence (dev mode).
- * For production, migrate to KeyManager.http() with remote storage.
+ * For production, deploy remote key manager backend and set NEXT_PUBLIC_KEY_MANAGER_URL.
  */
 
 export function PasskeyAuth() {

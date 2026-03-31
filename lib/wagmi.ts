@@ -1,57 +1,50 @@
 import { http, createConfig } from 'wagmi'
-import { mainnet, base } from 'wagmi/chains'
-
-// Tempo chain configuration (manual, since wagmi/tempo not available in v2.12)
-const tempoModerato = {
-  id: 42431,
-  name: 'Tempo Moderate',
-  nativeCurrency: { name: 'USD', symbol: 'USD', decimals: 18 },
-  rpcUrls: {
-    default: { http: ['https://rpc.moderato.tempo.xyz'] },
-    public: { http: ['https://rpc.moderato.tempo.xyz'] },
-  },
-  blockExplorers: {
-    default: { name: 'Tempo Explorer', url: 'https://explore.tempo.xyz' },
-  },
-}
-
-const tempo = {
-  id: 111,
-  name: 'Tempo',
-  nativeCurrency: { name: 'USD', symbol: 'USD', decimals: 18 },
-  rpcUrls: {
-    default: { http: ['https://rpc.tempo.xyz'] },
-    public: { http: ['https://rpc.tempo.xyz'] },
-  },
-  blockExplorers: {
-    default: { name: 'Tempo Explorer', url: 'https://explore.tempo.xyz' },
-  },
-}
-
-// WalletConnectors (passkey support requires @wagmi/tempo or viem integration)
+import { mainnet, base, tempo, tempoModerato } from 'wagmi/chains'
 import { coinbaseWallet, injected, metaMask, walletConnect } from 'wagmi/connectors'
+import { KeyManager, webAuthn } from 'wagmi/tempo'
 
 /**
- * Wagmi Configuration for AgentPad
+ * Wagmi Configuration for AgentPad with Tempo Passkey Support
  * 
- * Note: Passkey/WebAuthn authentication requires @wagmi/tempo package which is
- * compatible with wagmi v3+. For v2.12, we use standard wallet connectors.
+ * Features:
+ * 1. Passkey Authentication (WebAuthn) - Primary for Tempo
+ *    - Dev Mode: LocalStorage (no backend needed)
+ *    - Production: Remote Key Manager (cross-device sync)
+ * 2. Standard Wallets - Fallback options (MetaMask, WalletConnect, Coinbase)
  * 
  * Chains:
- * - Tempo Moderate (Testnet) - Active
- * - Tempo (Mainnet) - Active  
- * - Base - Future
- * - Mainnet - Future
+ * - Tempo Moderate (Testnet, Chain ID: 42431)
+ * - Tempo (Mainnet, Chain ID: 111)
+ * - Base (Future)
+ * - Mainnet (Future)
  */
 
 // Environment detection
 const isDevelopment = process.env.NODE_ENV === 'development'
 const keyManagerUrl = process.env.NEXT_PUBLIC_KEY_MANAGER_URL
+const keyManagerApiKey = process.env.NEXT_PUBLIC_KEY_MANAGER_API_KEY
+
+// Configure WebAuthn connector based on environment
+const webAuthnConnector = webAuthn({
+  keyManager: keyManagerUrl && !isDevelopment
+    ? KeyManager.http({
+        baseUrl: keyManagerUrl,
+        fetchOptions: {
+          headers: {
+            'X-API-Key': keyManagerApiKey || 'default-dev-key',
+          },
+        },
+      })
+    : KeyManager.localStorage(), // Dev fallback - keys stored in browser
+})
 
 export const config = createConfig({
   chains: [tempoModerato, tempo, base, mainnet],
   connectors: [
-    // Standard wallet connectors (passkey auth not available in wagmi v2.12)
+    // Primary: Passkey Authentication (WebAuthn) for Tempo
+    webAuthnConnector,
+
+    // Secondary: Standard Wallet Connectors
     injected({ target: 'metaMask' }),
     walletConnect({ 
       projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '85be66e6169307dc900bc2337d69d10a'
@@ -69,7 +62,7 @@ export const config = createConfig({
     [mainnet.id]: http(),
   },
 
-  // Disable injected wallet detection to prefer WalletConnect
+  // Enable multi-injected provider discovery for wallet fallbacks
   multiInjectedProviderDiscovery: true,
 })
 
@@ -80,6 +73,10 @@ declare module 'wagmi' {
   }
 }
 
+/**
+ * Helper: Get active key manager type
+ * Useful for logging/debugging
+ */
 export function getKeyManagerType(): 'remote' | 'local' {
   if (keyManagerUrl && !isDevelopment) {
     return 'remote'
