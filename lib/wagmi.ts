@@ -2,7 +2,7 @@ import { http, createConfig } from 'wagmi'
 import { mainnet, base } from 'wagmi/chains'
 import { coinbaseWallet, injected, metaMask, walletConnect } from 'wagmi/connectors'
 
-// Tempo chain configuration (manual for stability)
+// Define Tempo Moderate chain properly (must include all required fields)
 const tempoModerato = {
   id: 42431,
   name: 'Tempo Moderate',
@@ -14,8 +14,10 @@ const tempoModerato = {
   blockExplorers: {
     default: { name: 'Tempo Explorer', url: 'https://explore.tempo.xyz' },
   },
+  contracts: {},
 } as const
 
+// Define Tempo Mainnet chain
 const tempo = {
   id: 111,
   name: 'Tempo',
@@ -27,22 +29,17 @@ const tempo = {
   blockExplorers: {
     default: { name: 'Tempo Explorer', url: 'https://explore.tempo.xyz' },
   },
+  contracts: {},
 } as const
 
 /**
  * Wagmi Configuration for AgentPad
  * 
- * Chains:
- * - Tempo Moderate (Testnet, Chain ID: 42431)
- * - Tempo (Mainnet, Chain ID: 111)
- * - Base (Future)
- * - Mainnet (Future)
- * 
- * Wallet Connectors:
- * - MetaMask
- * - WalletConnect
- * - Coinbase Wallet
- * - Injected wallets
+ * Features:
+ * - Tempo Moderate (Testnet) - Default for development
+ * - Tempo (Mainnet) - For production
+ * - Zero gas fees on all Tempo chains
+ * - WalletConnect, MetaMask, Coinbase Wallet support
  */
 
 export const config = createConfig({
@@ -64,6 +61,7 @@ export const config = createConfig({
     [base.id]: http(),
     [mainnet.id]: http(),
   },
+  ssr: true, // Enable server-side rendering support
   multiInjectedProviderDiscovery: true,
 })
 
