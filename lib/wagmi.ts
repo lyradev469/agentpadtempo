@@ -1,6 +1,8 @@
 import { http, createConfig } from 'wagmi'
 import { mainnet, base, tempo, tempoModerato } from 'wagmi/chains'
 import { coinbaseWallet, injected, metaMask, walletConnect } from 'wagmi/connectors'
+
+// Tempo-specific imports (available in wagmi >=2.12.8 with viem >=2.21.0)
 import { KeyManager, webAuthn } from 'wagmi/tempo'
 
 /**
@@ -47,7 +49,7 @@ export const config = createConfig({
     // Secondary: Standard Wallet Connectors
     injected({ target: 'metaMask' }),
     walletConnect({ 
-      projectId: keyManagerApiKey || '85be66e6169307dc900bc2337d69d10a' // Use WalletConnect ID if no API key
+      projectId: keyManagerApiKey || '85be66e6169307dc900bc2337d69d10a'
     }),
     metaMask(),
     coinbaseWallet({
