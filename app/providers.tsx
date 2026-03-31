@@ -1,13 +1,12 @@
 'use client'
 
-import { WagmiProvider } from 'wagmi'
+import { WagmiProvider, createConfig, http } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { createConfig, http } from 'wagmi'
 import { mainnet, base } from 'wagmi/chains'
-import { coinbaseWallet, injected, metaMask, walletConnect } from 'wagmi/connectors'
+import { injected, walletConnect, metaMask, coinbaseWallet } from 'wagmi/connectors'
 
-// Define Tempo chains
+// Minimal Tempo Moderate chain (compatible with Wagmi types)
 const tempoModerato = {
   id: 42431,
   name: 'Tempo Moderate',
@@ -19,72 +18,40 @@ const tempoModerato = {
   blockExplorers: {
     default: { name: 'Tempo Explorer', url: 'https://explore.tempo.xyz' },
   },
-  contracts: {},
 } as const
 
-const tempo = {
-  id: 111,
-  name: 'Tempo',
-  nativeCurrency: { name: 'USD', symbol: 'USD', decimals: 18 },
-  rpcUrls: {
-    default: { http: ['https://rpc.tempo.xyz'] },
-    public: { http: ['https://rpc.tempo.xyz'] },
-  },
-  blockExplorers: {
-    default: { name: 'Tempo Explorer', url: 'https://explore.tempo.xyz' },
-  },
-  contracts: {},
-} as const
-
-let config: ReturnType<typeof createConfig> | null = null
-let queryClient: QueryClient | null = null
-
-function getConfig() {
-  if (!config) {
-    config = createConfig({
-      chains: [tempoModerato, tempo, base, mainnet],
+export function Providers({ children }: { children: React.ReactNode }) {
+  const wagmiConfig = useMemo(() => {
+    return createConfig({
+      chains: [tempoModerato as any, mainnet, base],
       connectors: [
-        injected({ target: 'metaMask' }),
+        injected(),
         walletConnect({ 
           projectId: '85be66e6169307dc900bc2337d69d10a',
         }),
         metaMask(),
-        coinbaseWallet({
-          appName: 'AgentPad',
-        }),
+        coinbaseWallet({ appName: 'AgentPad' }),
       ],
       transports: {
         [tempoModerato.id]: http('https://rpc.moderato.tempo.xyz'),
-        [tempo.id]: http('https://rpc.tempo.xyz'),
-        [base.id]: http(),
         [mainnet.id]: http(),
+        [base.id]: http(),
       },
       ssr: true,
     })
-  }
-  return config
-}
+  }, [])
 
-function getQueryClient() {
-  if (!queryClient) {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          staleTime: 60 * 1000,
-        },
+  const queryClient = useMemo(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000,
       },
-    })
-  }
-  return queryClient
-}
-
-export function Providers({ children }: { children: React.ReactNode }) {
-  const wagmiConfig = useMemo(() => getConfig(), [])
-  const client = useMemo(() => getQueryClient(), [])
+    },
+  }), [])
 
   return (
     <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={client}>
+      <QueryClientProvider client={queryClient}>
         {children}
       </QueryClientProvider>
     </WagmiProvider>
