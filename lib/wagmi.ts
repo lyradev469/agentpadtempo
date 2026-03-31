@@ -47,7 +47,7 @@ export const config = createConfig({
   connectors: [
     injected({ target: 'metaMask' }),
     walletConnect({ 
-      projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '85be66e6169307dc900bc2337d69d10a',
+      projectId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ? process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID : '85be66e6169307dc900bc2337d69d10a',
     }),
     metaMask(),
     coinbaseWallet({
