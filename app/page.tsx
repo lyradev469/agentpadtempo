@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { WalletConnect } from '@/components/WalletConnect'
-import { PasskeyAuth } from '@/components/PasskeyAuth'
+// PasskeyAuth disabled for stable deployment
+// import { PasskeyAuth } from '@/components/PasskeyAuth'
 import { LaunchList } from '@/components/LaunchList'
 import { CreateLaunch } from '@/components/CreateLaunch'
 import { RegisterAgent } from '@/components/RegisterAgent'
@@ -13,7 +14,7 @@ import { LaunchStats } from '@/components/LaunchStats'
 import HealthMonitor from '@/components/HealthMonitor'
 import { useAccount } from 'wagmi'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, Shield, DollarSign, ArrowUpRight, TrendingUp, Rocket, Key } from 'lucide-react'
+import { Zap, Shield, DollarSign, ArrowUpRight, TrendingUp, Rocket } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -107,6 +108,11 @@ export default function Home() {
       </header>
 
       <div className="container-simple px-6 md:px-12 py-12">
+        <div className="mb-8">
+          <WalletConnect />
+        </div>
+        
+        {/* Passkey Auth disabled for stable deployment
         <div className="grid md:grid-cols-2 gap-8 mb-8">
           <WalletConnect />
           <div>
@@ -120,8 +126,9 @@ export default function Home() {
             <PasskeyAuth />
           </div>
         </div>
+        */}
 
-        {/* LIVE STATS BAR - NEW! */}
+        {/* LIVE STATS BAR */}
         <LaunchStats />
 
         {/* Fee Sponsorship */}
